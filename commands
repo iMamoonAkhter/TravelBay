@@ -1,2 +1,6 @@
 npm i @chakra-ui/react @emotion/react @emotion/styled framer-motion axios emailjs-com formik react-redux yup react-router-dom react-icons
 npm i @chakra-ui/icons
+
+
+backend 
+npm i bcryptjs concurrently dotenv express express-async-handler jsonwebtoken mongoose
