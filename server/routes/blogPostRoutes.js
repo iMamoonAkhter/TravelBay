@@ -3,28 +3,65 @@ const BlogPost = require('../models/BlogPost');
 
 const BlogPostRoutes = express.Router();
 
-const getBlogPostByCategory = async (req, res)=>{
-    const {category, pageNumber} = req.params;
-
-    const posts = await BlogPost.find({});
-    const increment = pageNumber + 2;
-
-    let getStatus = ()=> (increment < posts.length ? 200 : 201) //201 response means last chunk of blog posts
-
+// This route handles getting a specific blog post by ID
+const getBlogPost = async (req, res) => {
     try {
-        if(category === 'all'){
-            res.status(getStatus()).json(posts.slice(pageNumber, increment));
-        } else if(category === 'latest'){
-            res.status(getStatus()).json(posts.sort((objA, objB) => Number(objB.createdAt) - Number(objA.createdAt))).slice(pageNumber, increment);
+        console.log("ID:", req.params.id);
+        const blogPost = await BlogPost.findById(req.params.id);
+        console.log("Blog Detail: ", blogPost);
+        if (blogPost) {
+            res.status(200).json(blogPost);
         } else {
-            const blogPosts = await BlogPost.find({category});
-            res.status(getStatus()).json(blogPosts.slice(pageNumber, increment));
+            res.status(404).json({ message: "Blog post not found!" });
         }
     } catch (error) {
-        res.status(400).json({message: "Something went wrong while getting the blogs. Please try again later"});
+        console.error('Error fetching blog post:', error);
+        res.status(400).json({ message: "Something went wrong while getting the blog post. Please try again later." });
     }
 };
 
+// This route handles getting blog posts by category and page number
+const getBlogPostByCategory = async (req, res) => {
+    try {
+        const category = req.params.category;
+        const pageNumber = parseInt(req.params.pageNumber, 10);
+
+        console.log('Category:', category);
+        console.log('Page Number:', pageNumber);
+
+        const increment = pageNumber + 2;
+
+        let posts;
+
+        if (category === 'all') {
+            posts = await BlogPost.find({});
+            console.log('All Posts:', posts);
+        } else if (category === 'latest') {
+            posts = await BlogPost.find({}).sort({ createdAt: -1 });
+            console.log('Latest Posts:', posts);
+        } else {
+            posts = await BlogPost.find({ category });
+            console.log(`Posts for category ${category}:`, posts);
+        }
+
+        if (posts.length > 0) {
+            const paginatedPosts = posts.slice(pageNumber, increment);
+            console.log('Paginated Posts:', paginatedPosts);
+            res.status(increment < posts.length ? 200 : 201).json(paginatedPosts);
+        } else {
+            res.status(404).json({ message: "No posts found" });
+        }
+
+    } catch (error) {
+        console.error('Error fetching blog posts by category:', error);
+        res.status(400).json({ message: "Something went wrong while getting the blogs. Please try again later." });
+    }
+};
+
+// Make sure this specific route comes first
+BlogPostRoutes.route('/post/:id').get(getBlogPost);
+
+// This route should be placed after the specific post route
 BlogPostRoutes.route('/:category/:pageNumber').get(getBlogPostByCategory);
 
 module.exports = BlogPostRoutes;

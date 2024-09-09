@@ -16,9 +16,37 @@ export const getBlogPostsByCategory = (category, pageItems) => async (dispatch) 
         dispatch(setBlogPostByCategory(data));
         dispatch(setStatus(status));
     } catch (error) {
-     dispatch(setError(error.response && error.response.data.message ? error.response.data.message : error.message ? error.message : "An unexpected error has occured. Please try again later"))   
+        dispatch(setError(error.response && error.response.data.message ? error.response.data.message : error.message ? error.message : "An unexpected error has occured. Please try again later"))   
     }
 };
+
+export const getBlogPost = (id) => async (dispatch) => {
+    dispatch(setLoading(true));
+    console.log(id);
+    try {
+      const { data } = await axios.get(`${host}/api/blog-posts/post/${id}`, {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      });
+      console.log(data);
+      dispatch(setBlogPost(data));
+    } catch (error) {
+      dispatch(
+        setError(
+          error.response && error.response.data.message
+            ? error.response.data.message
+            : error.message
+            ? error.message
+            : 'An unexpected error has occurred. Please try again later'
+        )
+      );
+    }
+  };
+  
+
 
 export const nextPageClick = (pageItems) => async (dispatch)=> {
     dispatch(setNextPage(pageItems + 1));
